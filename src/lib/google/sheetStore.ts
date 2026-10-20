@@ -67,7 +67,10 @@ export class GoogleSheetStore implements PlannerStore {
       const rows = res.valueRanges[i]?.values ?? [];
       const out: unknown[] = [];
       rows.forEach((values, r) => {
-        if (!values.some((v) => v !== "" && v !== null && v !== undefined)) return;
+        // Un rând contează doar dacă are conținut în afară de ID și de bife: o bifă goală
+        // (ex: „Plătit”) are valoarea FALSE pe toate rândurile tab-ului, chiar și pe cele nefolosite.
+        const hasContent = def.cols.some((c, k) => k > 0 && c.type !== "bool" && values[k] !== "" && values[k] !== null && values[k] !== undefined);
+        if (!hasContent) return;
         // rând adăugat de mână în Sheet, fără ID: îi dăm unul și îl scriem înapoi
         if (!values[0]) {
           values[0] = newId();
