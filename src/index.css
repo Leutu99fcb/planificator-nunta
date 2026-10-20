@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --bg: #faf6f3;
+  --surface: #ffffff;
+  --surface-2: #f4ede9;
+  --border: #e6dbd5;
+  --text: #2b2023;
+  --muted: #7a6b6f;
+  --primary: #9f4f5f;
+  --primary-hover: #8a4252;
+  --primary-fg: #ffffff;
+  --primary-soft: #f5e4e7;
+  --success: #2f7a52;
+  --success-soft: #e2f2e8;
+  --warning: #9a6512;
+  --warning-soft: #fbefd9;
+  --danger: #b4372f;
+  --danger-soft: #fbe3e1;
+  --info: #2f6690;
+  --info-soft: #e1edf6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #1b1517;
+    --surface: #251d20;
+    --surface-2: #2f2629;
+    --border: #3e3337;
+    --text: #f3eaec;
+    --muted: #b3a3a8;
+    --primary: #d98a9a;
+    --primary-hover: #e59fad;
+    --primary-fg: #2a1015;
+    --primary-soft: #3e252b;
+    --success: #7cc79c;
+    --success-soft: #1f3529;
+    --warning: #e3b468;
+    --warning-soft: #3b2e17;
+    --danger: #f08a80;
+    --danger-soft: #42221f;
+    --info: #8cbde3;
+    --info-soft: #1c2f3e;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+dialog::backdrop {
+  background: rgb(20 10 14 / 0.45);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+}

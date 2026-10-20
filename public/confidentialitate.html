@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Confidențialitate · Planificator de nuntă</title>
+    <style>
+      :root { --bg: #faf6f3; --text: #2b2023; --muted: #7a6b6f; --primary: #9f4f5f; --border: #e6dbd5; --surface: #fff; }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #1b1517; --text: #f3eaec; --muted: #b3a3a8; --primary: #d98a9a; --border: #3e3337; --surface: #251d20; }
+      }
+      body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      main { max-width: 720px; margin: 0 auto; padding: 40px 16px 64px; }
+      h1, h2 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+      h1 { font-size: 30px; margin: 0 0 4px; }
+      h2 { font-size: 20px; margin-top: 32px; }
+      .muted { color: var(--muted); }
+      .box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+      a { color: var(--primary); }
+      code { font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/">← Înapoi la aplicație</a></p>
+      <h1>Politica de confidențialitate</h1>
+      <p class="muted">Planificator de nuntă · ultima actualizare: 20 octombrie 2026</p>
+
+      <div class="box">
+        <b>Pe scurt:</b> datele tale nu ajung niciodată la noi. Aplicația nu are server și nu are bază de date proprie.
+        Tot ce scrii se salvează într-un Google Sheet din <b>Google Drive-ul tău</b>, iar aplicația vorbește direct, din browserul tău, cu Google.
+      </div>
+
+      <h2>Ce date folosește aplicația</h2>
+      <ul>
+        <li><b>Contul Google</b> (nume, email, poză): doar ca să-ți arate cu ce cont ești conectat și ca să te putem invita în planificatorul partenerului.</li>
+        <li><b>Datele planificatorului</b> (invitați, costuri, plăți, mese, lucruri de rezolvat): se scriu și se citesc doar din Sheet-ul tău.</li>
+      </ul>
+
+      <h2>Ce permisiuni cere</h2>
+      <p>
+        Aplicația cere o singură permisiune Google Drive: <code>drive.file</code>. Cu ea vede <b>doar fișierele create de aplicație</b>
+        sau pe cele pe care le alegi tu explicit din fereastra Google. Nu poate vedea restul fișierelor din Drive-ul tău.
+      </p>
+
+      <h2>Unde se stochează datele</h2>
+      <ul>
+        <li>În Sheet-ul din Drive-ul tău, cu regulile de securitate Google. Sheet-ul nu este public.</li>
+        <li>În browserul tău (memoria locală): ultimul planificator deschis, emailul contului (ca să-ți propună reconectarea) și tokenul temporar de acces Google, care expiră după o oră. Modul demo își ține datele tot aici.</li>
+        <li>Nicăieri altundeva. Nu folosim cookie-uri de urmărire, analytics sau reclame.</li>
+      </ul>
+
+      <h2>Cine are acces</h2>
+      <p>
+        Doar tu și persoanele cărora le dai acces: partenerul invitat din aplicație sau oricine adaugi tu din Google Drive, cu „Share”.
+        Autorul aplicației nu are acces la Sheet-ul tău.
+      </p>
+
+      <h2>Cum ștergi datele</h2>
+      <ul>
+        <li>Șterge Sheet-ul din Google Drive. Asta șterge tot planificatorul.</li>
+        <li>Retrage accesul aplicației din <a href="https://myaccount.google.com/connections" rel="noreferrer">contul Google → Aplicații conectate</a>.</li>
+        <li>Din aplicație, „Deconectează-te” șterge din browser emailul și tokenul.</li>
+      </ul>
+
+      <h2>Cod sursă</h2>
+      <p>Codul aplicației este public, ca oricine să poată verifica faptul că datele nu pleacă nicăieri altundeva decât spre Google.</p>
+
+      <h2>Contact</h2>
+      <p>Pentru întrebări, scrie-i persoanei care ți-a trimis linkul aplicației.</p>
+    </main>
+  </body>
+</html>
