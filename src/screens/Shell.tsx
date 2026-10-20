@@ -7,7 +7,7 @@ import { Badge, cx } from "../components/ui";
 import { Summary } from "./Summary";
 import { Guests } from "./Guests";
 import { Costs } from "./Costs";
-import { Seating } from "./Seating";
+import { Seating } from "./seating/Seating";
 import { Tasks } from "./Tasks";
 import { SettingsPage } from "./SettingsPage";
 

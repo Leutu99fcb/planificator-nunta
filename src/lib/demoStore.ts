@@ -79,13 +79,13 @@ function demoData(): PlannerData {
   const today = todayIso();
   const wedding = addMonths(today, 8);
   const el = (nume: string, tip: Table["tip"], forma: Table["forma"], locuri: number, x: number, y: number, latime: number, inaltime: number): Table => ({
-    id: newId(), nume, tip, forma, locuri, x, y, latime, inaltime, note: "",
+    id: newId(), nume, tip, forma, locuri, x, y, latime, inaltime, rotatie: 0, note: "",
   });
   const miri = el("Masa mirilor", "Masa mirilor", "Dreptunghiulară", 4, 520, 80, 260, 70);
   const nasi = el("Masa nașilor", "Masă", "Rotundă", 8, 260, 260, 120, 120);
   const m1 = el("Masa 1 – familia Popescu", "Masă", "Rotundă", 10, 860, 260, 130, 130);
   const m2 = el("Masa 2 – colegi", "Masă", "Dreptunghiulară", 10, 200, 520, 220, 80);
-  const m3 = el("Masa 3 – prieteni", "Masă", "Dreptunghiulară", 8, 900, 520, 110, 110);
+  const m3 = { ...el("Masa 3 – prieteni", "Masă", "Dreptunghiulară", 8, 900, 520, 110, 110), rotatie: 45 };
   const tables: Table[] = [
     miri, nasi, m1, m2, m3,
     el("Scena formației", "Scena formației", "Dreptunghiulară", 0, 120, 60, 200, 100),

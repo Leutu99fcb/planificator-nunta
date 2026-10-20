@@ -75,6 +75,7 @@ const TABLE_COLS: Col<EntityMap["tables"]>[] = [
   { key: "y", header: "Y", type: "number", width: 60 },
   { key: "latime", header: "Lățime", type: "number", width: 70 },
   { key: "inaltime", header: "Înălțime", type: "number", width: 70 },
+  { key: "rotatie", header: "Rotire (°)", type: "number", width: 70 },
   { key: "note", header: "Note", type: "text", width: 200 },
 ];
 

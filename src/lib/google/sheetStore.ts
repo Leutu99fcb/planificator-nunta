@@ -6,6 +6,7 @@ import { newId } from "../ids";
 import type { PlannerStore } from "../store";
 import { DEFAULT_SETTINGS, type EntityMap, type PlannerData, type Settings, type TableKey } from "../types";
 import { SHEETS, enc, gfetch } from "./api";
+import { migrateColumns } from "./migrate";
 
 // Citire: un singur batchGet pentru toate tab-urile.
 // Scriere: rândul se caută după ID chiar înainte de scriere (coloana A), ca o ștergere
@@ -40,6 +41,10 @@ export class GoogleSheetStore implements PlannerStore {
     const missing = [...TABLE_ORDER.map((k) => TABLE_DEFS[k].tab), SETTINGS_TAB].filter((t) => !sheets.has(t));
     if (missing.length) {
       throw new Error(`Fișierul ales nu pare un planificator de nuntă (lipsesc tab-urile: ${missing.join(", ")}).`);
+    }
+    if (await migrateColumns(id, new Map([...sheets].map(([title, s]) => [title, s.sheetId])))) {
+      // inserarea de coloane nu schimbă numărul de rânduri, dar recitim ca să fim siguri
+      return GoogleSheetStore.open(id);
     }
     return new GoogleSheetStore(id, meta.properties.title, sheets);
   }

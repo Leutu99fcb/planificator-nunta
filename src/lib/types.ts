@@ -78,6 +78,8 @@ export interface Table {
   y: number;
   latime: number;
   inaltime: number;
+  /** rotire în grade, în jurul centrului */
+  rotatie: number;
   note: string;
 }
 
