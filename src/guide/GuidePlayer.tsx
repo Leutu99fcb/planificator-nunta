@@ -118,9 +118,13 @@ export function GuidePlayer({ title, scenes, onClose }: { title: string; scenes:
         </div>
 
         <div ref={boxRef} className="flex justify-center">
+          {/* rama telefonului */}
+          <div className="rounded-[24px] bg-text/80 p-1 shadow-xl">
+          {/* ecranul: iframe-ul micșorat cu transform e desenat separat de browser și nu e tăiat
+              mereu de colțurile părintelui, așa că rotunjim și iframe-ul și punem o mască */}
           <div
-            className="relative overflow-hidden rounded-[22px] border-4 border-text/80 bg-bg shadow-xl"
-            style={{ width: FRAME_W * scale + 8, height: FRAME_H * scale + 8, clipPath: "inset(0 round 22px)" }}
+            className="relative overflow-hidden rounded-[20px] bg-bg"
+            style={{ width: FRAME_W * scale, height: FRAME_H * scale, transform: "translateZ(0)", WebkitMaskImage: "-webkit-radial-gradient(white, black)" }}
           >
             <iframe
               key={`${scene}-${nonce}`}
@@ -128,8 +132,8 @@ export function GuidePlayer({ title, scenes, onClose }: { title: string; scenes:
               src={`/?guide=${scene}&v=${nonce}`}
               title={`Ghid: ${SCRIPTS[scene].title}`}
               tabIndex={-1}
-              className="origin-top-left border-0"
-              style={{ width: FRAME_W, height: FRAME_H, transform: `scale(${scale})` }}
+              className="block origin-top-left border-0"
+              style={{ width: FRAME_W, height: FRAME_H, transform: `scale(${scale})`, borderRadius: 20 / scale }}
             />
             {/* stratul de deasupra: clicul pune pauză și nu ajunge în aplicație */}
             <button type="button" className="absolute inset-0 cursor-pointer" onClick={togglePause} aria-label={paused ? "Pornește ghidul" : "Pune pauză"} />
@@ -145,6 +149,7 @@ export function GuidePlayer({ title, scenes, onClose }: { title: string; scenes:
                 </span>
               </div>
             )}
+          </div>
           </div>
         </div>
 

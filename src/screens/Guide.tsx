@@ -31,7 +31,7 @@ const ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "Cum fac planul sălii?",
-    a: "La Mese apasă „Adaugă” și pune mesele (rotunde, pătrate, dreptunghiulare), masa mirilor, scena, scena formației și ringul de dans. Le muți trăgându-le. Elementul selectat se mărește din colțul din dreapta-jos. Invitații din lista „Neașezați” îi tragi pe un scaun anume sau pe masă. Pe telefon ții apăsat puțin, apoi tragi.",
+    a: "La Mese apasă „Adaugă” și pune mesele (rotunde, pătrate, dreptunghiulare), masa mirilor, scena, scena formației și ringul de dans. Le muți trăgându-le. Elementul selectat se mărește din colțul din dreapta-jos. Ca să muți mai multe deodată: pe calculator Shift sau Ctrl + clic, sau tragi un dreptunghi pe zona goală; pe telefon pornești „Selectează mai multe” și le atingi pe rând. Invitații din lista „Neașezați” îi tragi pe un scaun anume sau pe masă. Pe telefon ții apăsat puțin, apoi tragi.",
   },
   {
     q: "Pot lucra direct în Google Sheets?",

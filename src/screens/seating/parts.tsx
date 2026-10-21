@@ -122,7 +122,7 @@ export const ELEMENT_STYLE: Record<TipElement, string> = {
 };
 
 export function Element({
-  el, guests, seatSize, labelMode, mode, selected, armed, onInteraction, onBodyClick, onDoubleClick, onSeatClick,
+  el, guests, seatSize, labelMode, mode, selected, handles, armed, onInteraction, onBodyClick, onDoubleClick, onSeatClick,
 }: {
   el: Table;
   guests: Guest[];
@@ -130,6 +130,8 @@ export function Element({
   labelMode: LabelMode;
   mode: Mode;
   selected: boolean;
+  /** butoanele de rotire și mărime apar doar când e selectat un singur element */
+  handles: boolean;
   armed: boolean;
   onInteraction: (e: React.PointerEvent, kind: Interaction) => void;
   onBodyClick: () => void;
@@ -207,7 +209,7 @@ export function Element({
         </span>
       )}
 
-      {selected && arrange && (
+      {selected && arrange && handles && (
         <>
           <div className="pointer-events-none absolute left-1/2 w-px -translate-x-1/2 bg-primary/60" style={{ top: -seatPad - 22, height: 22 }} />
           <div

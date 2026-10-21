@@ -3,7 +3,7 @@ import {
   DndContext, DragOverlay, MouseSensor, TouchSensor, pointerWithin, rectIntersection, useSensor, useSensors,
   type CollisionDetection, type DragEndEvent, type DragStartEvent,
 } from "@dnd-kit/core";
-import { Copy, Hand, Magnet, Maximize2, Minimize2, Minus, Pencil, Plus, RotateCcw, RotateCw, Scan, Trash2, X } from "lucide-react";
+import { Copy, Hand, Layers, Magnet, Maximize2, Minimize2, Minus, Pencil, Plus, RotateCcw, RotateCw, Scan, Trash2, X } from "lucide-react";
 import { firstFreeSeat, hasSeats, persons, seatMap, seatTables, seatingStats, type SeatOccupant } from "../../lib/calc";
 import { plural } from "../../lib/format";
 import { newId } from "../../lib/ids";
@@ -25,6 +25,8 @@ import { useCanvasZoom } from "./useCanvasZoom";
 // - „Aranjează sala”: muți, rotești și redimensionezi mesele, scenele și ringul de dans.
 
 type Live = Pick<Table, "id" | "x" | "y" | "latime" | "inaltime" | "rotatie">;
+/** pozițiile „în mișcare”, pe id, înainte de salvare (unul sau mai multe elemente) */
+type LiveMap = Record<string, Live>;
 
 type Dialog =
   | { kind: "pick"; tableId: string; seat: number | null }
@@ -64,21 +66,28 @@ export function Seating() {
   const [labelMode, setLabelModeState] = useState<LabelMode>(() => stored("pn_seat_labels", ["initiale", "scurt", "complet"] as const) ?? "scurt");
   const [snapOn, setSnapOn] = useState(true);
   const [full, setFull] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [live, setLive] = useState<Live | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  /** pe telefon: fiecare atingere adaugă/scoate un element din selecție */
+  const [multi, setMulti] = useState(false);
+  const [live, setLive] = useState<LiveMap | null>(null);
+  /** dreptunghiul de selecție (mouse), în unități de plan */
+  const [marquee, setMarquee] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null);
+  const suppressClick = useRef(false);
   const [dragGuest, setDragGuest] = useState<Guest | null>(null);
   const [armedId, setArmedId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const liveRef = useRef<Live | null>(null);
+  const liveRef = useRef<LiveMap | null>(null);
   const nudgeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const setMode = (m: Mode) => {
     setModeState(m);
     store("pn_seat_mode", m);
-    if (m === "seat") setSelected(null);
-    else setArmedId(null);
+    if (m === "seat") {
+      setSelected([]);
+      setMulti(false);
+    } else setArmedId(null);
   };
   const setLabelMode = (m: LabelMode) => {
     setLabelModeState(m);
@@ -91,7 +100,7 @@ export function Seating() {
   );
 
   const seatSize = SEAT_SIZE[labelMode];
-  const elements = useMemo(() => data.tables.map((t) => (live && live.id === t.id ? { ...t, ...live } : t)), [data.tables, live]);
+  const elements = useMemo(() => data.tables.map((t) => (live?.[t.id] ? { ...t, ...live[t.id] } : t)), [data.tables, live]);
   const board = boardSize(elements, seatSize);
   const stats = seatingStats(data);
   const tables = seatTables(data.tables);
@@ -100,7 +109,8 @@ export function Seating() {
     .filter((g) => g.rsvp !== "Nu" && !tableIds.has(g.masaId))
     .filter((g) => !query.trim() || `${g.nume} ${g.grup}`.toLowerCase().includes(query.trim().toLowerCase()))
     .sort((a, b) => a.grup.localeCompare(b.grup, "ro") || a.nume.localeCompare(b.nume, "ro"));
-  const selectedEl = mode === "arrange" ? (elements.find((e) => e.id === selected) ?? null) : null;
+  const selectedEls = mode === "arrange" ? elements.filter((e) => selected.includes(e.id)) : [];
+  const selectedEl = selectedEls.length === 1 ? selectedEls[0] : null;
   const armed = data.guests.find((g) => g.id === armedId) ?? null;
   const findGuest = (id: string) => data.guests.find((g) => g.id === id);
   const findTable = (id: string) => data.tables.find((t) => t.id === id);
@@ -125,12 +135,16 @@ export function Seating() {
 
   // ---------- mutare / redimensionare / rotire ----------
 
-  const commitLive = (el: Table) => {
+  /** Salvează tot ce s-a mutat (unul sau mai multe elemente) într-o singură scriere. */
+  const commitLive = () => {
     const l = liveRef.current;
     liveRef.current = null;
     if (!l) return setLive(null);
-    update("tables", [{ ...el, ...l }]).finally(() => setLive((cur) => (cur?.id === el.id ? null : cur)));
+    const rows = data.tables.filter((t) => l[t.id]).map((t) => ({ ...t, ...l[t.id] }));
+    update("tables", rows).finally(() => setLive((cur) => (cur === l ? null : cur)));
   };
+
+  const pick = (t: Table): Live => ({ id: t.id, x: t.x, y: t.y, latime: t.latime, inaltime: t.inaltime, rotatie: rotation(t) });
 
   const startInteraction = (e: React.PointerEvent, el: Table, kind: Interaction) => {
     if (e.button !== 0) return;
@@ -145,14 +159,27 @@ export function Seating() {
     const keepCircle = el.forma === "Rotundă" && hasSeats(el);
     let moved = false;
 
+    // selecția: Shift / Ctrl / ⌘ (sau modul „mai multe” de pe telefon) adaugă la selecție
+    const additive = e.shiftKey || e.ctrlKey || e.metaKey || multi;
+    const wasSelected = selected.includes(el.id);
+    let group = selected;
+    if (kind === "move" && !wasSelected) {
+      group = additive ? [...selected, el.id] : [el.id];
+      setSelected(group);
+    }
+    const members = kind === "move" ? elements.filter((t) => group.includes(t.id)) : [el];
+
     const onMove = (ev: PointerEvent) => {
       if (!moved && Math.hypot(ev.clientX - start.px, ev.clientY - start.py) < 4) return;
       moved = true;
       const dx = (ev.clientX - start.px) / zoom;
       const dy = (ev.clientY - start.py) / zoom;
-      let next: Live = { id: el.id, x: el.x, y: el.y, latime: el.latime, inaltime: el.inaltime, rotatie: rot };
+      let next: LiveMap;
       if (kind === "move") {
-        next = { ...next, x: Math.max(0, snap(start.x + dx, snapOn)), y: Math.max(0, snap(start.y + dy, snapOn)) };
+        // elementul tras se aliniază la grilă; restul grupului se mută cu aceeași distanță
+        const ddx = Math.max(0, snap(start.x + dx, snapOn)) - start.x;
+        const ddy = Math.max(0, snap(start.y + dy, snapOn)) - start.y;
+        next = Object.fromEntries(members.map((t) => [t.id, { ...pick(t), x: Math.max(0, t.x + ddx), y: Math.max(0, t.y + ddy) }]));
       } else if (kind === "resize") {
         // în sistemul mesei (rotite), centrul rămâne pe loc și colțul urmează cursorul
         const lx = dx * Math.cos(a) + dy * Math.sin(a);
@@ -160,10 +187,10 @@ export function Seating() {
         let w = Math.max(MIN_SIZE, snap(start.w + 2 * lx, snapOn));
         let h = Math.max(MIN_SIZE, snap(start.h + 2 * ly, snapOn));
         if (keepCircle) w = h = Math.max(w, h);
-        next = { ...next, latime: w, inaltime: h, x: Math.round(center.x - w / 2), y: Math.round(center.y - h / 2) };
+        next = { [el.id]: { ...pick(el), latime: w, inaltime: h, x: Math.round(center.x - w / 2), y: Math.round(center.y - h / 2) } };
       } else {
         const ang = (Math.atan2(ev.clientY - screenCenter.y, ev.clientX - screenCenter.x) * 180) / Math.PI + 90;
-        next = { ...next, rotatie: normalizeAngle(snapOn ? Math.round(ang / 15) * 15 : ang) };
+        next = { [el.id]: { ...pick(el), rotatie: normalizeAngle(snapOn ? Math.round(ang / 15) * 15 : ang) } };
       }
       liveRef.current = next;
       setLive(next);
@@ -172,27 +199,69 @@ export function Seating() {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
-      if (moved) commitLive(el);
-      else {
-        liveRef.current = null;
-        if (kind === "move") setSelected(el.id);
-      }
+      if (moved) return commitLive();
+      liveRef.current = null;
+      if (kind !== "move") return;
+      // simplu clic: cu Shift/Ctrl scoate din selecție un element deja selectat, altfel îl selectează doar pe el
+      if (additive && wasSelected) setSelected(selected.filter((id) => id !== el.id));
+      else if (!additive) setSelected([el.id]);
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("pointercancel", onUp);
   };
 
-  const rotateBy = (el: Table, delta: number) => update("tables", [{ ...el, rotatie: normalizeAngle(rotation(el) + delta) }]);
+  /** Dreptunghi de selecție cu mouse-ul, pe zona goală a planului (pe telefon, zona goală derulează). */
+  const startMarquee = (e: React.PointerEvent) => {
+    if (mode !== "arrange" || e.button !== 0 || e.pointerType !== "mouse") return;
+    const s = scrollRef.current;
+    if (!s) return;
+    const r = s.getBoundingClientRect();
+    const toBoard = (cx: number, cy: number) => ({ x: (cx - r.left + s.scrollLeft) / zoom, y: (cy - r.top + s.scrollTop) / zoom });
+    const p0 = toBoard(e.clientX, e.clientY);
+    const additive = e.shiftKey || e.ctrlKey || e.metaKey;
+    const base = additive ? selected : [];
+    let rect = { x0: p0.x, y0: p0.y, x1: p0.x, y1: p0.y };
+    let moved = false;
+    const onMove = (ev: PointerEvent) => {
+      const p = toBoard(ev.clientX, ev.clientY);
+      if (!moved && Math.hypot(p.x - p0.x, p.y - p0.y) * zoom < 5) return;
+      moved = true;
+      rect = { ...rect, x1: p.x, y1: p.y };
+      setMarquee(rect);
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      setMarquee(null);
+      if (!moved) return; // clicul simplu pe gol deselectează (în onClick)
+      suppressClick.current = true;
+      const minX = Math.min(rect.x0, rect.x1);
+      const maxX = Math.max(rect.x0, rect.x1);
+      const minY = Math.min(rect.y0, rect.y1);
+      const maxY = Math.max(rect.y0, rect.y1);
+      const hit = elements.filter((t) => t.x < maxX && t.x + t.latime > minX && t.y < maxY && t.y + t.inaltime > minY).map((t) => t.id);
+      setSelected([...new Set([...base, ...hit])]);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
 
-  // săgețile mută elementul selectat; salvăm o singură dată, după ce te oprești
-  const nudge = (el: Table, dx: number, dy: number) => {
-    const base = liveRef.current?.id === el.id ? liveRef.current : el;
-    const next: Live = { id: el.id, x: Math.max(0, base.x + dx), y: Math.max(0, base.y + dy), latime: base.latime, inaltime: base.inaltime, rotatie: rotation(base as Table) };
+  const rotateBy = (els: Table[], delta: number) => update("tables", els.map((el) => ({ ...el, rotatie: normalizeAngle(rotation(el) + delta) })));
+
+  // săgețile mută elementele selectate; salvăm o singură dată, după ce te oprești
+  const nudge = (els: Table[], dx: number, dy: number) => {
+    const cur = liveRef.current ?? {};
+    const next: LiveMap = Object.fromEntries(
+      els.map((el) => {
+        const base = cur[el.id] ?? pick(el);
+        return [el.id, { ...base, x: Math.max(0, base.x + dx), y: Math.max(0, base.y + dy) }];
+      }),
+    );
     liveRef.current = next;
     setLive(next);
     clearTimeout(nudgeTimer.current);
-    nudgeTimer.current = setTimeout(() => commitLive(el), 600);
+    nudgeTimer.current = setTimeout(commitLive, 600);
   };
 
   // ---------- așezare invitați ----------
@@ -274,33 +343,37 @@ export function Seating() {
     const el = makeElement(p, snap(c.x, snapOn), snap(c.y, snapOn), tables.length);
     if (await add("tables", [el], `${p.label} adăugată`)) {
       setMode("arrange");
-      setSelected(el.id);
+      setSelected([el.id]);
     }
   };
 
-  const duplicate = async (el: Table) => {
-    const copy: Table = {
+  const duplicate = async (els: Table[]) => {
+    let n = tables.length;
+    const copies: Table[] = els.map((el) => ({
       ...el,
       id: newId(),
-      nume: el.tip === "Masă" ? `Masa ${tables.length + 1}` : `${el.nume} (copie)`,
+      nume: el.tip === "Masă" ? `Masa ${++n}` : `${el.nume} (copie)`,
       x: el.x + 40,
       y: el.y + 40,
-    };
-    if (await add("tables", [copy], "Element duplicat")) setSelected(copy.id);
+    }));
+    if (await add("tables", copies, els.length > 1 ? `${plural(copies.length, "element duplicat", "elemente duplicate")}` : "Element duplicat")) {
+      setSelected(copies.map((c) => c.id));
+    }
   };
 
-  const deleteElement = async (el: Table) => {
-    const seated = data.guests.filter((g) => g.masaId === el.id);
+  const deleteElements = async (els: Table[]) => {
+    const ids = els.map((e) => e.id);
+    const seated = data.guests.filter((g) => ids.includes(g.masaId));
     const ok = await confirm({
-      title: `Ștergi „${el.nume}”?`,
-      text: seated.length ? `${plural(seated.length, "invitat ajunge", "invitați ajung")} la „Neașezați”.` : "Elementul dispare din plan.",
+      title: els.length === 1 ? `Ștergi „${els[0].nume}”?` : `Ștergi ${plural(els.length, "element", "elemente")}?`,
+      text: seated.length ? `${plural(seated.length, "invitat ajunge", "invitați ajung")} la „Neașezați”.` : "Dispar din plan.",
       confirmLabel: "Șterge",
       danger: true,
     });
     if (!ok) return;
     if (seated.length && !(await update("guests", seated.map((g) => ({ ...g, masaId: "", loc: null }))))) return;
-    if (await remove("tables", [el.id], "Șters")) {
-      setSelected(null);
+    if (await remove("tables", ids, "Șters")) {
+      setSelected([]);
       setDialog(null);
     }
   };
@@ -331,21 +404,26 @@ export function Seating() {
       if (t?.closest("input, textarea, select, dialog")) return;
       if (e.key === "Escape") {
         if (armedId) setArmedId(null);
-        else if (selected) setSelected(null);
+        else if (selected.length) setSelected([]);
         else if (full) setFull(false);
         return;
       }
-      if (!selectedEl) return;
+      if (mode === "arrange" && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        setSelected(data.tables.map((t) => t.id));
+        return;
+      }
+      if (!selectedEls.length) return;
       const stepPx = e.shiftKey ? GRID : 5;
       const moves: Record<string, [number, number]> = { ArrowLeft: [-stepPx, 0], ArrowRight: [stepPx, 0], ArrowUp: [0, -stepPx], ArrowDown: [0, stepPx] };
       if (moves[e.key]) {
         e.preventDefault();
-        nudge(selectedEl, ...moves[e.key]);
+        nudge(selectedEls, ...moves[e.key]);
       } else if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
-        deleteElement(selectedEl);
-      } else if (e.key.toLowerCase() === "r") {
-        rotateBy(selectedEl, e.shiftKey ? -15 : 15);
+        deleteElements(selectedEls);
+      } else if (e.key.toLowerCase() === "r" && !e.ctrlKey && !e.metaKey) {
+        rotateBy(selectedEls, e.shiftKey ? -15 : 15);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -402,7 +480,50 @@ export function Seating() {
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-muted">Pe locuri:</span>
         <Segmented size="sm" value={labelMode} options={LABEL_MODES} onChange={setLabelMode} />
+        {mode === "arrange" && (
+          <>
+            <span className="flex-1" />
+            <button
+              type="button"
+              onClick={() => setMulti((m) => !m)}
+              aria-pressed={multi}
+              className={cx(
+                "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors",
+                multi ? "border-primary bg-primary-soft text-primary-ink" : "border-border bg-surface text-muted hover:text-text",
+              )}
+              title="Cât e pornit, fiecare atingere adaugă sau scoate un element din selecție. Pe calculator: Shift/Ctrl + clic sau trage un dreptunghi."
+            >
+              <Layers className="h-3.5 w-3.5" />
+              Selectează mai multe
+            </button>
+          </>
+        )}
       </div>
+
+      {selectedEls.length > 1 && (
+        <Card className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 text-sm">
+          <span className="font-medium">{plural(selectedEls.length, "element selectat", "elemente selectate")}</span>
+          <span className="hidden text-xs text-muted sm:inline">trage oricare ca să le muți pe toate</span>
+          <span className="inline-flex items-center gap-1">
+            <IconBtn label="Rotește-le la stânga 15°" onClick={() => rotateBy(selectedEls, -15)}>
+              <RotateCcw className="h-4 w-4" />
+            </IconBtn>
+            <IconBtn label="Rotește-le la dreapta 15°" onClick={() => rotateBy(selectedEls, 15)}>
+              <RotateCw className="h-4 w-4" />
+            </IconBtn>
+          </span>
+          <span className="flex-1" />
+          <Button size="sm" variant="ghost" icon={<Copy className="h-4 w-4" />} onClick={() => duplicate(selectedEls)}>
+            <span className="hidden sm:inline">Duplică</span>
+          </Button>
+          <Button size="sm" variant="ghost" className="text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={() => deleteElements(selectedEls)}>
+            <span className="hidden sm:inline">Șterge</span>
+          </Button>
+          <Button size="sm" variant="ghost" icon={<X className="h-4 w-4" />} onClick={() => setSelected([])}>
+            <span className="hidden sm:inline">Deselectează</span>
+          </Button>
+        </Card>
+      )}
 
       {selectedEl && (
         <Card className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2 text-sm">
@@ -419,11 +540,11 @@ export function Seating() {
             </span>
           )}
           <span className="inline-flex items-center gap-1">
-            <IconBtn label="Rotește la stânga 15°" onClick={() => rotateBy(selectedEl, -15)}>
+            <IconBtn label="Rotește la stânga 15°" onClick={() => rotateBy([selectedEl], -15)}>
               <RotateCcw className="h-4 w-4" />
             </IconBtn>
             <span className="w-10 text-center tabular-nums text-muted">{rotation(selectedEl)}°</span>
-            <IconBtn label="Rotește la dreapta 15°" onClick={() => rotateBy(selectedEl, 15)}>
+            <IconBtn label="Rotește la dreapta 15°" onClick={() => rotateBy([selectedEl], 15)}>
               <RotateCw className="h-4 w-4" />
             </IconBtn>
           </span>
@@ -431,10 +552,10 @@ export function Seating() {
           <Button size="sm" variant="ghost" icon={<Pencil className="h-4 w-4" />} onClick={() => setDialog({ kind: "edit", el: selectedEl })}>
             <span className="hidden sm:inline">Editează</span>
           </Button>
-          <Button size="sm" variant="ghost" icon={<Copy className="h-4 w-4" />} onClick={() => duplicate(selectedEl)}>
+          <Button size="sm" variant="ghost" icon={<Copy className="h-4 w-4" />} onClick={() => duplicate([selectedEl])}>
             <span className="hidden sm:inline">Duplică</span>
           </Button>
-          <Button size="sm" variant="ghost" className="text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={() => deleteElement(selectedEl)}>
+          <Button size="sm" variant="ghost" className="text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={() => deleteElements([selectedEl])}>
             <span className="hidden sm:inline">Șterge</span>
           </Button>
         </Card>
@@ -464,9 +585,17 @@ export function Seating() {
             <div ref={scrollRef} className="h-full w-full overflow-auto overscroll-contain" style={{ touchAction: "pan-x pan-y" }}>
               <div
                 style={{ width: board.w * zoom, height: board.h * zoom }}
+                onPointerDown={(e) => {
+                  if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.board) startMarquee(e);
+                }}
                 onClick={(e) => {
                   if (e.target !== e.currentTarget && !(e.target as HTMLElement).dataset.board) return;
-                  setSelected(null);
+                  // după un dreptunghi de selecție vine și un „click” pe gol; nu vrem să deselecteze
+                  if (suppressClick.current) {
+                    suppressClick.current = false;
+                    return;
+                  }
+                  setSelected([]);
                   setArmedId(null);
                 }}
               >
@@ -489,7 +618,8 @@ export function Seating() {
                       seatSize={seatSize}
                       labelMode={labelMode}
                       mode={mode}
-                      selected={mode === "arrange" && el.id === selected}
+                      selected={mode === "arrange" && selected.includes(el.id)}
+                      handles={selectedEls.length === 1}
                       armed={!!armed}
                       onInteraction={(e, kind) => startInteraction(e, el, kind)}
                       onBodyClick={() => onBodyClick(el)}
@@ -497,6 +627,17 @@ export function Seating() {
                       onSeatClick={(k, occ) => onSeatClick(el, k, occ)}
                     />
                   ))}
+                  {marquee && (
+                    <div
+                      className="pointer-events-none absolute rounded-sm border-2 border-primary bg-primary/10"
+                      style={{
+                        left: Math.min(marquee.x0, marquee.x1),
+                        top: Math.min(marquee.y0, marquee.y1),
+                        width: Math.abs(marquee.x1 - marquee.x0),
+                        height: Math.abs(marquee.y1 - marquee.y0),
+                      }}
+                    />
+                  )}
                   {elements.length === 0 && (
                     <div className="absolute left-6 top-6 max-w-sm rounded-xl border border-dashed border-border bg-surface p-5 text-sm text-muted">
                       Planul e gol. Apasă <b>Adaugă</b> și pune mesele, masa mirilor, scena formației și ringul de dans.
@@ -616,7 +757,7 @@ export function Seating() {
           onArrange={() => {
             setDialog(null);
             setMode("arrange");
-            setSelected(sheetTable.id);
+            setSelected([sheetTable.id]);
           }}
         />
       )}
@@ -645,7 +786,7 @@ export function Seating() {
           initial={dialog.el}
           onClose={() => setDialog(null)}
           onSave={async (el) => (await update("tables", [{ ...el, rotatie: normalizeAngle(el.rotatie) }], "Salvat")) && setDialog(null)}
-          onDelete={() => deleteElement(dialog.el)}
+          onDelete={() => deleteElements([dialog.el])}
         />
       )}
     </div>
