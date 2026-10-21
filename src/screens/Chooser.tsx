@@ -63,7 +63,7 @@ export function Chooser({ user, onOpen, onLeave }: { user: GoogleUser; onOpen: (
             <Spinner /> Caut planificatoarele tale…
           </Card>
         ) : planners.isError ? (
-          <Card className="p-5 text-sm text-danger">{planners.error.message}</Card>
+          <Card className="p-5 text-sm text-danger-ink">{planners.error.message}</Card>
         ) : (
           list.length > 0 && (
             <Card className="p-5">
@@ -76,7 +76,7 @@ export function Chooser({ user, onOpen, onLeave }: { user: GoogleUser; onOpen: (
                     onClick={() => onOpen(f.id)}
                     className="flex w-full items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-surface-2"
                   >
-                    <FileSpreadsheet className="h-5 w-5 shrink-0 text-success" />
+                    <FileSpreadsheet className="h-5 w-5 shrink-0 text-success-ink" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{f.name}</span>
                       <span className="block text-xs text-muted">
@@ -120,7 +120,7 @@ export function Chooser({ user, onOpen, onLeave }: { user: GoogleUser; onOpen: (
           <Button className="w-full" onClick={pick} disabled={!!busy || !pickerConfigured} icon={busy === "pick" ? <Spinner /> : <FolderOpen className="h-4 w-4" />}>
             Deschide planificator partajat
           </Button>
-          {!pickerConfigured && <p className="mt-2 text-xs text-warning">Alegerea din Drive nu e configurată pe acest site.</p>}
+          {!pickerConfigured && <p className="mt-2 text-xs text-warning-ink">Alegerea din Drive nu e configurată pe acest site.</p>}
         </Card>
       </div>
     </div>

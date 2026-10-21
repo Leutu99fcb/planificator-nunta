@@ -56,7 +56,7 @@ export function GuestPill({ guest, lifted, armed }: { guest: Guest; lifted?: boo
           {n}
         </span>
       )}
-      {guest.rsvp === "Necunoscut" && <span className="shrink-0 text-xs text-warning">?</span>}
+      {guest.rsvp === "Necunoscut" && <span className="shrink-0 text-xs text-warning-ink">?</span>}
     </span>
   );
 }
@@ -82,7 +82,7 @@ export function UnseatedPanel({
           <h2 className="font-serif text-base font-semibold">Neașezați</h2>
           <Badge tone={total ? "warning" : "success"}>{plural(total, "persoană", "persoane")}</Badge>
           <span className="flex-1" />
-          <button type="button" className="text-xs text-muted underline-offset-2 hover:text-danger hover:underline" onClick={onClear}>
+          <button type="button" className="text-xs text-muted underline-offset-2 hover:text-danger-ink hover:underline" onClick={onClear}>
             Golește locurile
           </button>
         </div>
@@ -169,11 +169,11 @@ export function Element({
       >
         {/* textul rămâne drept, chiar dacă masa e rotită */}
         <div className="flex max-w-full flex-col items-center" style={{ transform: rot ? `rotate(${-rot}deg)` : undefined }}>
-          {el.tip === "Scena formației" && <Music className="mb-0.5 h-5 w-5 text-info" />}
-          {el.tip === "Ring de dans" && <Sparkles className="mb-0.5 h-5 w-5 text-warning" />}
+          {el.tip === "Scena formației" && <Music className="mb-0.5 h-5 w-5 text-info-ink" />}
+          {el.tip === "Ring de dans" && <Sparkles className="mb-0.5 h-5 w-5 text-warning-ink" />}
           <span className={cx("max-w-full px-2 font-medium leading-tight", small ? "text-[11px]" : "text-sm")}>{el.nume}</span>
           {map && (
-            <span className={cx("text-[11px] tabular-nums", over ? "font-semibold text-danger" : "text-muted")}>
+            <span className={cx("text-[11px] tabular-nums", over ? "font-semibold text-danger-ink" : "text-muted")}>
               {map.used}/{el.locuri}
             </span>
           )}
@@ -212,7 +212,7 @@ export function Element({
           <div className="pointer-events-none absolute left-1/2 w-px -translate-x-1/2 bg-primary/60" style={{ top: -seatPad - 22, height: 22 }} />
           <div
             onPointerDown={(e) => onInteraction(e, "rotate")}
-            className="absolute left-1/2 flex h-7 w-7 -translate-x-1/2 cursor-grab touch-none items-center justify-center rounded-full border-2 border-primary bg-surface text-primary shadow"
+            className="absolute left-1/2 flex h-7 w-7 -translate-x-1/2 cursor-grab touch-none items-center justify-center rounded-full border-2 border-primary bg-surface text-primary-ink shadow"
             style={{ top: -seatPad - 50 }}
             title="Trage ca să rotești"
           >
@@ -281,7 +281,7 @@ function Seat({
         <span
           className={cx(
             "flex h-full w-full cursor-grab items-center justify-center overflow-hidden rounded-full border-2 px-1 text-center font-semibold shadow-sm",
-            g.rsvp === "Da" ? "border-success/60 bg-success-soft text-success" : "border-warning/60 bg-warning-soft text-warning",
+            g.rsvp === "Da" ? "border-success/60 bg-success-soft text-success-ink" : "border-warning/60 bg-warning-soft text-warning-ink",
             occupant.kind !== "principal" && "opacity-75",
             isOver && "ring-2 ring-primary",
           )}
@@ -311,8 +311,8 @@ function fitFont(label: string, seat: number, mode: LabelMode): number {
 }
 
 export function PresetIcon({ tip, forma, square }: { tip: TipElement; forma: Forma; square: boolean }) {
-  if (tip === "Scena formației") return <Music className="h-5 w-5 text-info" />;
-  if (tip === "Ring de dans") return <Sparkles className="h-5 w-5 text-warning" />;
+  if (tip === "Scena formației") return <Music className="h-5 w-5 text-info-ink" />;
+  if (tip === "Ring de dans") return <Sparkles className="h-5 w-5 text-warning-ink" />;
   return (
     <span
       className={cx(
@@ -337,7 +337,7 @@ export function ElementForm({ initial, onClose, onSave, onDelete }: { initial: T
       title="Editează elementul"
       footer={
         <>
-          <Button variant="ghost" className="mr-auto text-danger" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
+          <Button variant="ghost" className="mr-auto text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
             Șterge
           </Button>
           <Button onClick={onClose}>Renunță</Button>
@@ -385,7 +385,7 @@ export function ElementForm({ initial, onClose, onSave, onDelete }: { initial: T
           </Field>
         </div>
         {t.forma === "Dreptunghiulară" && t.latime !== t.inaltime && (
-          <button type="button" className="text-xs text-primary underline" onClick={() => set("inaltime", t.latime)}>
+          <button type="button" className="text-xs text-primary-ink underline" onClick={() => set("inaltime", t.latime)}>
             Fă-o pătrată
           </button>
         )}

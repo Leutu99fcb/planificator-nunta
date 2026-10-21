@@ -120,7 +120,7 @@ export function Tasks() {
                 onClick={() => key === "gata" && setShowDone(!showDone)}
                 disabled={key !== "gata"}
               >
-                <span className={cx(key === "restante" && "text-danger")}>{title}</span>
+                <span className={cx(key === "restante" && "text-danger-ink")}>{title}</span>
                 <span className="text-xs font-normal text-muted">{list.length}</span>
                 {key === "gata" && <ChevronDown className={cx("h-4 w-4 text-muted transition-transform", showDone && "rotate-180")} />}
               </button>
@@ -212,7 +212,7 @@ function TaskForm({
       footer={
         <>
           {!isNew && (
-            <Button variant="ghost" className="mr-auto text-danger" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
+            <Button variant="ghost" className="mr-auto text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
               Șterge
             </Button>
           )}

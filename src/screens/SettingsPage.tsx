@@ -7,7 +7,8 @@ import { listAccess, removeAccess, sharePlanner } from "../lib/google/setup";
 import type { Moneda, Settings } from "../lib/types";
 import { usePlanner } from "../state/planner";
 import { useFeedback } from "../components/feedback";
-import { Badge, Button, Card, Field, Input, SectionTitle, Select, Spinner } from "../components/ui";
+import { Badge, Button, Card, Field, Input, SectionTitle, Segmented, Select, Spinner } from "../components/ui";
+import { THEME_OPTIONS, setTheme, useTheme } from "../state/theme";
 import { Guide } from "./Guide";
 
 export function SettingsPage({ user, onLeave, onSwitch }: { user?: GoogleUser; onLeave: () => void; onSwitch?: () => void }) {
@@ -27,9 +28,22 @@ export function SettingsPage({ user, onLeave, onSwitch }: { user?: GoogleUser; o
     await saveSettings(patch, "Setări salvate");
   };
 
+  const theme = useTheme();
+
   return (
     <div className="space-y-8">
       <h1 className="font-serif text-2xl font-semibold">Setări</h1>
+
+      <section>
+        <SectionTitle>Aspect</SectionTitle>
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <div>
+            <div className="text-sm font-medium">Tema</div>
+            <div className="text-xs text-muted">„Sistem” urmează setarea telefonului sau a calculatorului. Alegerea se ține minte pe acest dispozitiv.</div>
+          </div>
+          <Segmented value={theme} options={THEME_OPTIONS} onChange={setTheme} />
+        </Card>
+      </section>
 
       <section>
         <SectionTitle>Despre nuntă</SectionTitle>
@@ -83,7 +97,7 @@ export function SettingsPage({ user, onLeave, onSwitch }: { user?: GoogleUser; o
             <SectionTitle>Planificatorul</SectionTitle>
             <Card className="space-y-3 p-5">
               <div className="flex items-center gap-3 text-sm">
-                <FileSpreadsheet className="h-5 w-5 shrink-0 text-success" />
+                <FileSpreadsheet className="h-5 w-5 shrink-0 text-success-ink" />
                 <span className="min-w-0 flex-1 truncate">{store.title}</span>
               </div>
               <div className="flex flex-wrap gap-2">

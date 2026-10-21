@@ -13,7 +13,7 @@ const VARIANTS: Record<Variant, string> = {
   primary: "bg-primary text-primary-fg hover:bg-primary-hover",
   secondary: "bg-surface border border-border text-text hover:bg-surface-2",
   ghost: "text-text hover:bg-surface-2",
-  danger: "bg-danger text-white hover:opacity-90",
+  danger: "bg-danger text-danger-fg hover:opacity-90",
 };
 
 export const Button = forwardRef<
@@ -86,11 +86,11 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
 type Tone = "neutral" | "primary" | "success" | "warning" | "danger" | "info";
 const TONES: Record<Tone, string> = {
   neutral: "bg-surface-2 text-muted",
-  primary: "bg-primary-soft text-primary",
-  success: "bg-success-soft text-success",
-  warning: "bg-warning-soft text-warning",
-  danger: "bg-danger-soft text-danger",
-  info: "bg-info-soft text-info",
+  primary: "bg-primary-soft text-primary-ink",
+  success: "bg-success-soft text-success-ink",
+  warning: "bg-warning-soft text-warning-ink",
+  danger: "bg-danger-soft text-danger-ink",
+  info: "bg-info-soft text-info-ink",
 };
 
 export function Badge({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
@@ -105,7 +105,7 @@ export function Stat({ label, value, sub, tone }: { label: string; value: ReactN
   return (
     <Card className="p-4">
       <div className="text-xs uppercase tracking-wide text-muted">{label}</div>
-      <div className={cx("mt-1 text-2xl font-semibold tabular-nums", tone === "danger" && "text-danger", tone === "success" && "text-success", tone === "warning" && "text-warning")}>
+      <div className={cx("mt-1 text-2xl font-semibold tabular-nums", tone === "danger" && "text-danger-ink", tone === "success" && "text-success-ink", tone === "warning" && "text-warning-ink")}>
         {value}
       </div>
       {sub && <div className="mt-0.5 text-xs text-muted">{sub}</div>}
@@ -126,7 +126,7 @@ export function Progress({ value, max, tone = "primary" }: { value: number; max:
 export function EmptyState({ icon, title, children }: { icon: ReactNode; title: string; children?: ReactNode }) {
   return (
     <Card className="p-8 text-center">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">{icon}</div>
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary-ink">{icon}</div>
       <div className="font-medium">{title}</div>
       {children && <div className="mt-2 text-sm text-muted">{children}</div>}
     </Card>

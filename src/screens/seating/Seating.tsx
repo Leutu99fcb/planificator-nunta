@@ -366,7 +366,7 @@ export function Seating() {
           <h1 className="font-serif text-2xl font-semibold">Plan de mese</h1>
           <p className="text-sm text-muted">
             {stats.seatedPersons} din {stats.seatedPersons + stats.unseatedPersons} persoane așezate · {stats.seats} locuri la {plural(stats.tables, "masă", "mese")}
-            {stats.overfull.length > 0 && <span className="text-danger"> · {plural(stats.overfull.length, "masă prea plină", "mese prea pline")}</span>}
+            {stats.overfull.length > 0 && <span className="text-danger-ink"> · {plural(stats.overfull.length, "masă prea plină", "mese prea pline")}</span>}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -434,7 +434,7 @@ export function Seating() {
           <Button size="sm" variant="ghost" icon={<Copy className="h-4 w-4" />} onClick={() => duplicate(selectedEl)}>
             <span className="hidden sm:inline">Duplică</span>
           </Button>
-          <Button size="sm" variant="ghost" className="text-danger" icon={<Trash2 className="h-4 w-4" />} onClick={() => deleteElement(selectedEl)}>
+          <Button size="sm" variant="ghost" className="text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={() => deleteElement(selectedEl)}>
             <span className="hidden sm:inline">Șterge</span>
           </Button>
         </Card>
@@ -508,7 +508,7 @@ export function Seating() {
 
             {armed && (
               <div className="absolute inset-x-2 top-2 z-10 flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-surface/95 px-3 py-2 text-sm shadow-lg backdrop-blur">
-                <Hand className="h-4 w-4 shrink-0 text-primary" />
+                <Hand className="h-4 w-4 shrink-0 text-primary-ink" />
                 <span className="min-w-0 flex-1">
                   Atinge un loc pentru <b>{armed.nume}</b>
                   {persons(armed) > 1 && ` (${persons(armed)} persoane, însoțitorii stau alături)`}

@@ -4,6 +4,7 @@ import { daysUntil, formatDate } from "../lib/dates";
 import { usePlanner } from "../state/planner";
 import { href, useRoute, type Route } from "../state/route";
 import { Badge, cx } from "../components/ui";
+import { ThemeButton } from "../components/ThemeButton";
 import { Summary } from "./Summary";
 import { Guests } from "./Guests";
 import { Costs } from "./Costs";
@@ -48,6 +49,7 @@ export function Shell({ user, onLeave, onSwitch }: { user?: GoogleUser; onLeave:
             </div>
           </div>
           {store.kind === "demo" && <Badge tone="warning">Demo</Badge>}
+          <ThemeButton />
           <button
             type="button"
             onClick={refresh}
@@ -65,7 +67,7 @@ export function Shell({ user, onLeave, onSwitch }: { user?: GoogleUser; onLeave:
               href={href(n.route)}
               className={cx(
                 "flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium",
-                route === n.route ? "border-primary text-primary" : "border-transparent text-muted hover:text-text",
+                route === n.route ? "border-primary text-primary-ink" : "border-transparent text-muted hover:text-text",
               )}
             >
               <n.icon className="h-4 w-4" />
@@ -89,7 +91,7 @@ export function Shell({ user, onLeave, onSwitch }: { user?: GoogleUser; onLeave:
           <a
             key={n.route}
             href={href(n.route)}
-            className={cx("flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium", route === n.route ? "text-primary" : "text-muted")}
+            className={cx("flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium", route === n.route ? "text-primary-ink" : "text-muted")}
           >
             <n.icon className="h-5 w-5" />
             <span className="truncate">{n.label}</span>

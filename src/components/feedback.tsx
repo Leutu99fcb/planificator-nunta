@@ -53,10 +53,10 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             key={t.id}
             className={cx(
               "pointer-events-auto flex max-w-md items-start gap-2 rounded-xl border px-4 py-2.5 text-sm shadow-lg",
-              t.kind === "error" ? "border-danger/30 bg-danger-soft text-danger" : "border-border bg-surface text-text",
+              t.kind === "error" ? "border-danger/30 bg-danger-soft text-danger-ink" : "border-border bg-surface text-text",
             )}
           >
-            {t.kind === "error" ? <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> : <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />}
+            {t.kind === "error" ? <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> : <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-ink" />}
             <span>{t.text}</span>
           </div>
         ))}

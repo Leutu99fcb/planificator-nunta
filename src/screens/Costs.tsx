@@ -112,7 +112,7 @@ export function Costs() {
           <h1 className="font-serif text-2xl font-semibold">Costuri și plăți</h1>
           <p className="text-sm text-muted">
             Fiecare furnizor cu avansurile, ratele și termenele lui, în lei sau euro. Totalurile sunt în {main === "EUR" ? "euro" : "lei"}, la cursul de{" "}
-            {rate.toLocaleString("ro-RO")} lei/€ <a className="text-primary underline" href={href("setari")}>(schimbă)</a>.
+            {rate.toLocaleString("ro-RO")} lei/€ <a className="text-primary-ink underline" href={href("setari")}>(schimbă)</a>.
           </p>
         </div>
         <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setEditCost({ cost: emptyCost(main), isNew: true })}>
@@ -138,14 +138,14 @@ export function Costs() {
       </div>
 
       {bs.overBudget && (
-        <div className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
+        <div className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-ink">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           Costurile ({money(bs.total, main)}) depășesc bugetul ({money(bs.budget, main)}) cu {money(bs.total - bs.budget, main)}.
         </div>
       )}
 
       {bs.potential > 0 && (
-        <a href={href("sarcini")} className="flex items-center gap-2 rounded-xl border border-info/30 bg-info-soft px-4 py-3 text-sm text-info hover:opacity-90">
+        <a href={href("sarcini")} className="flex items-center gap-2 rounded-xl border border-info/30 bg-info-soft px-4 py-3 text-sm text-info-ink hover:opacity-90">
           <Lightbulb className="h-4 w-4 shrink-0" />
           Încă {money(bs.potential, main)} costuri potențiale în „De rezolvat” (nu intră în total până nu le transformi în cost).
         </a>
@@ -213,13 +213,13 @@ export function Costs() {
                           {cur !== main && ` (≈ ${money(convert(d.total, cur, main, rate), main)})`}
                         </span>
                         <span>
-                          Plătit <b className="text-success">{money(d.paid, cur)}</b>
+                          Plătit <b className="text-success-ink">{money(d.paid, cur)}</b>
                         </span>
                         <span>
                           Rest <b className="text-text">{money(d.remaining, cur)}</b>
                         </span>
                         {d.next && (
-                          <span className={cx(paymentState(d.next) === "restant" && "text-danger")}>
+                          <span className={cx(paymentState(d.next) === "restant" && "text-danger-ink")}>
                             Următoarea: {money(d.next.suma, d.next.moneda)} {payLabel(d.next)}
                           </span>
                         )}
@@ -254,7 +254,7 @@ export function Costs() {
                         </div>
                       )}
                       {d.unscheduled > 0.5 && d.payments.length > 0 && (
-                        <p className="mt-2 text-xs text-warning">{money(d.unscheduled, cur)} din total nu au încă o plată programată.</p>
+                        <p className="mt-2 text-xs text-warning-ink">{money(d.unscheduled, cur)} din total nu au încă o plată programată.</p>
                       )}
                       {c.contact && <p className="mt-2 text-xs text-muted">Contact: {c.contact}</p>}
                       {c.note && <p className="mt-1 text-xs text-muted">{c.note}</p>}
@@ -343,7 +343,7 @@ export function CostForm({
       footer={
         <>
           {!isNew && onDelete && (
-            <Button variant="ghost" className="mr-auto text-danger" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
+            <Button variant="ghost" className="mr-auto text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
               Șterge
             </Button>
           )}
@@ -391,7 +391,7 @@ export function CostForm({
           </Field>
         </div>
         {(perPerson || c.moneda !== main) && (
-          <p className="rounded-lg bg-info-soft p-2.5 text-xs text-info">
+          <p className="rounded-lg bg-info-soft p-2.5 text-xs text-info-ink">
             {perPerson && `Totalul se calculează cu persoanele estimate (confirmate + fără răspuns): acum ${expected}, adică ${money(unitPrice(c) * expected, c.moneda)}. `}
             {c.moneda !== main && `În totaluri apare ca ≈ ${money(convert(perPerson ? unitPrice(c) * expected : unitPrice(c), c.moneda, main, rate), main)} (curs ${rate} lei/€).`}
           </p>
@@ -418,7 +418,7 @@ function PaymentForm({
       footer={
         <>
           {!isNew && (
-            <Button variant="ghost" className="mr-auto text-danger" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
+            <Button variant="ghost" className="mr-auto text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
               Șterge
             </Button>
           )}

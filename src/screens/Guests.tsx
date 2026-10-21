@@ -65,8 +65,8 @@ export function Guests() {
         <div>
           <h1 className="font-serif text-2xl font-semibold">Invitați</h1>
           <p className="text-sm text-muted">
-            {plural(stats.total, "persoană", "persoane")} · <span className="text-success">{stats.confirmed} confirmate</span> ·{" "}
-            <span className="text-warning">{stats.unknown} fără răspuns</span> · <span className="text-danger">{stats.declined} refuzuri</span>
+            {plural(stats.total, "persoană", "persoane")} · <span className="text-success-ink">{stats.confirmed} confirmate</span> ·{" "}
+            <span className="text-warning-ink">{stats.unknown} fără răspuns</span> · <span className="text-danger-ink">{stats.declined} refuzuri</span>
           </p>
         </div>
         <div className="flex gap-2">
@@ -184,7 +184,7 @@ function GuestForm({
       footer={
         <>
           {!isNew && (
-            <Button variant="ghost" className="mr-auto text-danger" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
+            <Button variant="ghost" className="mr-auto text-danger-ink" icon={<Trash2 className="h-4 w-4" />} onClick={onDelete}>
               Șterge
             </Button>
           )}

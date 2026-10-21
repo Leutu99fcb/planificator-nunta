@@ -38,7 +38,7 @@ export function ReauthBanner() {
   };
 
   return (
-    <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-3 border-b border-warning/30 bg-warning-soft px-4 py-2 text-sm text-warning">
+    <div className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-3 border-b border-warning/30 bg-warning-soft px-4 py-2 text-sm text-warning-ink">
       <KeyRound className="h-4 w-4" />
       <span>Sesiunea Google a expirat (durează o oră). Modificările nu se mai salvează până te reconectezi.</span>
       <Button size="sm" variant="primary" onClick={reconnect} disabled={busy}>

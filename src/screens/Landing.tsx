@@ -4,6 +4,7 @@ import { googleConfigured } from "../lib/config";
 import { getStoredUser, signIn, type GoogleUser } from "../lib/google/auth";
 import { useFeedback } from "../components/feedback";
 import { Button, Card, Spinner } from "../components/ui";
+import { ThemeButton } from "../components/ThemeButton";
 
 const FEATURES = [
   { icon: Users, title: "Invitați", text: "RSVP, însoțitori, copii, restricții alimentare." },
@@ -29,7 +30,10 @@ export function Landing({ onDemo, onGoogle }: { onDemo: () => void; onGoogle: (u
   };
 
   return (
-    <div className="min-h-screen px-4 py-10 sm:py-16">
+    <div className="relative min-h-screen px-4 py-10 sm:py-16">
+      <div className="absolute right-3 top-3">
+        <ThemeButton />
+      </div>
       <div className="mx-auto max-w-3xl">
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-fg">
@@ -48,7 +52,7 @@ export function Landing({ onDemo, onGoogle }: { onDemo: () => void; onGoogle: (u
               {remembered ? `Continuă ca ${remembered.email}` : "Continuă cu Google"}
             </Button>
           ) : (
-            <p className="rounded-lg bg-warning-soft p-3 text-sm text-warning">
+            <p className="rounded-lg bg-warning-soft p-3 text-sm text-warning-ink">
               Login-ul Google nu e configurat încă pe acest site. Poți încerca aplicația în modul demo.
             </p>
           )}
@@ -57,11 +61,11 @@ export function Landing({ onDemo, onGoogle }: { onDemo: () => void; onGoogle: (u
           </Button>
 
           <div className="mt-5 flex gap-3 rounded-lg bg-surface-2 p-3 text-xs text-muted">
-            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-success-ink" />
             <p>
               Datele tale stau într-un Google Sheet din <b>Drive-ul tău</b>. Aplicația nu are server și nu are bază de date:
               nimeni altcineva nu le vede, nici autorul aplicației. Aplicația cere acces doar la fișierele create de ea.{" "}
-              <a className="text-primary underline" href="/confidentialitate.html">
+              <a className="text-primary-ink underline" href="/confidentialitate.html">
                 Confidențialitate
               </a>
             </p>
@@ -71,7 +75,7 @@ export function Landing({ onDemo, onGoogle }: { onDemo: () => void; onGoogle: (u
         <div className="mt-10 grid gap-3 sm:grid-cols-2">
           {FEATURES.map((f) => (
             <Card key={f.title} className="flex gap-3 p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary-ink">
                 <f.icon className="h-5 w-5" />
               </div>
               <div>

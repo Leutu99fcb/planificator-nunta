@@ -1,49 +1,119 @@
 @import "tailwindcss";
 
+/*
+  Paleta: #FF6800 (portocaliu, culoarea aplicației), #00FF81 (verde: confirmat, plătit),
+  #FFA900 (chihlimbar: atenție, fără răspuns), #00F0FF (cyan: informații, euro).
+  Roșul pentru erori și depășiri nu e în paletă; l-am ales ca să se distingă de portocaliu.
+
+  Fiecare culoare are trei variante:
+  - culoarea vie (exact din paletă): fundaluri pline, butoane, bife, contururi
+  - „-ink”: pentru text; în modul luminos e mai închisă, ca să se citească pe alb
+  - „-soft”: fundal discret pentru etichete și alerte
+  Textul de pe un fundal viu folosește „-fg”.
+
+  Tema: implicit urmează sistemul; data-theme="light" / "dark" pe <html> o forțează.
+*/
+
 :root {
   color-scheme: light;
-  --bg: #faf6f3;
+  --bg: #f6f7f7;
   --surface: #ffffff;
-  --surface-2: #f4ede9;
-  --border: #e6dbd5;
-  --text: #2b2023;
-  --muted: #7a6b6f;
-  --primary: #9f4f5f;
-  --primary-hover: #8a4252;
-  --primary-fg: #ffffff;
-  --primary-soft: #f5e4e7;
-  --success: #2f7a52;
-  --success-soft: #e2f2e8;
-  --warning: #9a6512;
-  --warning-soft: #fbefd9;
-  --danger: #b4372f;
-  --danger-soft: #fbe3e1;
-  --info: #2f6690;
-  --info-soft: #e1edf6;
+  --surface-2: #eef1f1;
+  --border: #dbe1e2;
+  --text: #121718;
+  --muted: #5d696b;
+
+  --primary: #ff6800;
+  --primary-hover: #ff7f26;
+  --primary-fg: #1a0c00;
+  --primary-ink: #c24e00;
+  --primary-soft: #ffeadb;
+
+  --success: #00ff81;
+  --success-ink: #007f44;
+  --success-soft: #dcfbea;
+
+  --warning: #ffa900;
+  --warning-ink: #8f5a00;
+  --warning-soft: #fff1d4;
+
+  --info: #00f0ff;
+  --info-ink: #007a85;
+  --info-soft: #d8fbfd;
+
+  --danger: #e5143c;
+  --danger-fg: #ffffff;
+  --danger-ink: #c8102e;
+  --danger-soft: #ffe1e6;
 }
 
+/* aceleași valori de două ori: o dată pentru „Sistem” pe întunecat, o dată pentru „Întunecat” ales manual */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #1b1517;
-    --surface: #251d20;
-    --surface-2: #2f2629;
-    --border: #3e3337;
-    --text: #f3eaec;
-    --muted: #b3a3a8;
-    --primary: #d98a9a;
-    --primary-hover: #e59fad;
-    --primary-fg: #2a1015;
-    --primary-soft: #3e252b;
-    --success: #7cc79c;
-    --success-soft: #1f3529;
-    --warning: #e3b468;
-    --warning-soft: #3b2e17;
-    --danger: #f08a80;
-    --danger-soft: #42221f;
-    --info: #8cbde3;
-    --info-soft: #1c2f3e;
+    --bg: #0d1011;
+    --surface: #151a1b;
+    --surface-2: #1d2425;
+    --border: #2b3436;
+    --text: #edf3f3;
+    --muted: #96a4a6;
+
+    --primary: #ff6800;
+    --primary-hover: #ff7f26;
+    --primary-fg: #140900;
+    --primary-ink: #ff8a3d;
+    --primary-soft: #36200f;
+
+    --success: #00ff81;
+    --success-ink: #00ff81;
+    --success-soft: #0b3122;
+
+    --warning: #ffa900;
+    --warning-ink: #ffb829;
+    --warning-soft: #362806;
+
+    --info: #00f0ff;
+    --info-ink: #00f0ff;
+    --info-soft: #06313a;
+
+    --danger: #ff4d6a;
+    --danger-fg: #1a0006;
+    --danger-ink: #ff7088;
+    --danger-soft: #3b1219;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0d1011;
+  --surface: #151a1b;
+  --surface-2: #1d2425;
+  --border: #2b3436;
+  --text: #edf3f3;
+  --muted: #96a4a6;
+
+  --primary: #ff6800;
+  --primary-hover: #ff7f26;
+  --primary-fg: #140900;
+  --primary-ink: #ff8a3d;
+  --primary-soft: #36200f;
+
+  --success: #00ff81;
+  --success-ink: #00ff81;
+  --success-soft: #0b3122;
+
+  --warning: #ffa900;
+  --warning-ink: #ffb829;
+  --warning-soft: #362806;
+
+  --info: #00f0ff;
+  --info-ink: #00f0ff;
+  --info-soft: #06313a;
+
+  --danger: #ff4d6a;
+  --danger-fg: #1a0006;
+  --danger-ink: #ff7088;
+  --danger-soft: #3b1219;
 }
 
 @theme inline {
@@ -56,15 +126,21 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-fg: var(--primary-fg);
+  --color-primary-ink: var(--primary-ink);
   --color-primary-soft: var(--primary-soft);
   --color-success: var(--success);
+  --color-success-ink: var(--success-ink);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
+  --color-warning-ink: var(--warning-ink);
   --color-warning-soft: var(--warning-soft);
-  --color-danger: var(--danger);
-  --color-danger-soft: var(--danger-soft);
   --color-info: var(--info);
+  --color-info-ink: var(--info-ink);
   --color-info-soft: var(--info-soft);
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-ink: var(--danger-ink);
+  --color-danger-soft: var(--danger-soft);
   --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -78,7 +154,7 @@ body {
 }
 
 dialog::backdrop {
-  background: rgb(20 10 14 / 0.45);
+  background: rgb(5 10 12 / 0.55);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {

@@ -81,7 +81,7 @@ export function GuestSheet({
           <Button icon={<MoveRight className="h-4 w-4" />} onClick={onChooseTable}>
             Alege masa din listă
           </Button>
-          <Button variant="ghost" className="text-danger" icon={<UserMinus className="h-4 w-4" />} onClick={onUnseat}>
+          <Button variant="ghost" className="text-danger-ink" icon={<UserMinus className="h-4 w-4" />} onClick={onUnseat}>
             Scoate de la masă
           </Button>
         </div>
@@ -111,7 +111,7 @@ export function TableSheet({
           <Badge tone={used > table.locuri ? "danger" : used === table.locuri ? "success" : "neutral"}>
             {used}/{table.locuri} locuri
           </Badge>
-          {overflow > 0 && <span className="text-danger">{overflow} fără loc</span>}
+          {overflow > 0 && <span className="text-danger-ink">{overflow} fără loc</span>}
         </div>
         {seated.length === 0 ? (
           <p className="py-3 text-sm text-muted">Nimeni nu stă încă aici.</p>
@@ -123,7 +123,7 @@ export function TableSheet({
                   <span className="block truncate text-sm">{g.nume}</span>
                   {describe(g) && <span className="block truncate text-xs text-muted">{describe(g)}</span>}
                 </button>
-                <button type="button" className="rounded-md p-1.5 text-muted hover:bg-surface-2 hover:text-danger" onClick={() => onUnseat(g)} aria-label={`Scoate pe ${g.nume}`}>
+                <button type="button" className="rounded-md p-1.5 text-muted hover:bg-surface-2 hover:text-danger-ink" onClick={() => onUnseat(g)} aria-label={`Scoate pe ${g.nume}`}>
                   <UserMinus className="h-4 w-4" />
                 </button>
               </div>
@@ -159,7 +159,7 @@ export function TableChooser({
               key={t.id}
               active={guest.masaId === t.id}
               label={t.nume}
-              right={<span className={over ? "text-xs tabular-nums text-danger" : "text-xs tabular-nums text-muted"}>{used}/{t.locuri}</span>}
+              right={<span className={over ? "text-xs tabular-nums text-danger-ink" : "text-xs tabular-nums text-muted"}>{used}/{t.locuri}</span>}
               onClick={() => onPick(t)}
             />
           );

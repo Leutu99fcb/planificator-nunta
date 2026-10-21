@@ -3,10 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#9f4f5f" />
+    <meta name="theme-color" content="#ff6800" />
     <meta name="description" content="Planificator de nuntă gratuit: invitați, costuri și plăți, așezare la mese și lucruri de rezolvat. Datele stau în Google Sheet-ul tău." />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Planificator de nuntă</title>
+    <script>
+      // tema aleasă (luminos/întunecat) se aplică înainte de primul desen, fără să pâlpâie
+      try {
+        var t = localStorage.getItem("pn_theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
