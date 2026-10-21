@@ -5,4 +5,6 @@ import { GUIDE_SCENE, installSandboxStorage } from "./runtime";
 if (GUIDE_SCENE) {
   installSandboxStorage();
   window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#/${GUIDE_SCENE}`);
+  // în telefonul din ghid bara de derulare doar încurcă (derularea o face „degetul”)
+  document.documentElement.style.scrollbarWidth = "none";
 }

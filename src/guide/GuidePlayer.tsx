@@ -36,16 +36,26 @@ export function GuidePlayer({ title, scenes, onClose }: { title: string; scenes:
     setPaused(false);
   };
 
-  // telefonul se micșorează ca să încapă în fereastră (lățime și înălțime)
+  // telefonul se micșorează ca să încapă în fereastră (lățime și înălțime). Măsurăm cu
+  // ResizeObserver: la montare fereastra (dialogul) încă nu e deschisă și lățimea e 0,
+  // iar observer-ul ne anunță când devine vizibilă.
   useLayoutEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
     const fit = () => {
-      const w = boxRef.current?.clientWidth ?? FRAME_W;
+      const w = box.clientWidth;
+      if (!w) return;
       const h = Math.min(window.innerHeight * 0.56, 640);
-      setScale(Math.min(1, w / FRAME_W, h / FRAME_H));
+      setScale(Math.max(0.3, Math.min(1, (w - 8) / FRAME_W, h / FRAME_H)));
     };
     fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(box);
     window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
   }, []);
 
   useEffect(() => {
