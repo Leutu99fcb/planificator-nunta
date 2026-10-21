@@ -1,3 +1,4 @@
+import "./guide/sandbox-entry"; // primul: izolează localStorage în modul ghid
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

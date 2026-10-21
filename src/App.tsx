@@ -10,6 +10,8 @@ import { Chooser } from "./screens/Chooser";
 import { Shell } from "./screens/Shell";
 import { Button, Card, Spinner } from "./components/ui";
 import { ReauthBanner } from "./components/ReauthBanner";
+import { GUIDE_SCENE } from "./guide/runtime";
+import { GuideApp } from "./guide/GuideApp";
 
 // Sesiunea: demo (localStorage) sau Google (Sheet din Drive). Alegerea și ultimul
 // planificator deschis se țin minte în browser, ca la revenire să intri direct.
@@ -28,6 +30,11 @@ function initialSession(): Session {
 }
 
 export function App() {
+  // în iframe-ul ghidurilor rulează aplicația pe date demo din memorie, cu scenariul paginii
+  return GUIDE_SCENE ? <GuideApp scene={GUIDE_SCENE} /> : <MainApp />;
+}
+
+function MainApp() {
   const [session, setSession] = useState<Session>(initialSession);
 
   const leave = () => {

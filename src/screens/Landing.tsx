@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CalendarHeart, Clapperboard, HandCoins, LayoutGrid, ListChecks, Lock, Users } from "lucide-react";
 import { GuidePlayer } from "../guide/GuidePlayer";
-import { TOUR } from "../guide/scenes";
+import { TOUR } from "../guide/tour";
 import { googleConfigured } from "../lib/config";
 import { getStoredUser, signIn, type GoogleUser } from "../lib/google/auth";
 import { useFeedback } from "../components/feedback";
@@ -77,7 +77,7 @@ export function Landing({ onDemo, onGoogle }: { onDemo: () => void; onGoogle: (u
 
         <div className="mt-8 flex justify-center">
           <Button icon={<Clapperboard className="h-4 w-4" />} onClick={() => setTour(true)}>
-            Vezi cum funcționează (40 s)
+            Vezi cum funcționează (~2 min)
           </Button>
         </div>
         {tour && <GuidePlayer title="Cum funcționează" scenes={TOUR} onClose={() => setTour(false)} />}

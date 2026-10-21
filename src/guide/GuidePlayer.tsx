@@ -1,179 +1,185 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Pause, Play, RotateCcw } from "lucide-react";
-import { Modal, cx } from "../components/ui";
-import type { GuideScene } from "./types";
+import { Modal, Spinner, cx } from "../components/ui";
+import type { Route } from "../state/route";
+import type { GuideCommand, GuideMessage } from "./driver";
+import { SCRIPTS } from "./scripts";
 
-// Player-ul ghidurilor: un „telefon” cu ecranul animat, un deget care apasă și textul
-// pasului dedesubt. Bara de progres e chiar ceasul: când animația ei se termină, trecem
-// la pasul următor, așa că pauza (animation-play-state) oprește totul fără timere.
+// Player-ul ghidurilor: aplicația reală, într-un iframe de mărimea unui telefon (micșorat
+// ca să încapă), rulează scenariul paginii pe date demo. Aici afișăm textul pasului,
+// progresul și capitolele; clicul pe ecran pune pauză (nu ajunge în aplicație).
 
-const TAP_DELAY = 750;
+const FRAME_W = 390;
+const FRAME_H = 760;
 
-export function GuidePlayer({ title, scenes, onClose }: { title: string; scenes: GuideScene[]; onClose: () => void }) {
-  const [sceneIdx, setSceneIdx] = useState(0);
-  const [step, setStep] = useState(0);
+type State = "loading" | "playing" | "done" | "error";
+
+export function GuidePlayer({ title, scenes, onClose }: { title: string; scenes: Route[]; onClose: () => void }) {
+  const [idx, setIdx] = useState(0);
+  const [nonce, setNonce] = useState(0);
+  const [caption, setCaption] = useState<{ text: string; index: number; total: number } | null>(null);
   const [paused, setPaused] = useState(false);
-  const [acted, setActed] = useState(false);
-  const [cursor, setCursor] = useState<{ x: number; y: number; visible: boolean }>({ x: 50, y: 85, visible: false });
-  const frameRef = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<State>("loading");
+  const [scale, setScale] = useState(0.7);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const nextTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const scene = scenes[sceneIdx];
-  const current = scene.steps[step];
-  const Screen = scene.Screen;
+  const scene = scenes[idx];
 
-  // după atingere, ecranul reacționează
-  useEffect(() => {
-    if (!current.tap) {
-      setActed(true);
-      return;
-    }
-    setActed(false);
-    if (paused) return;
-    const t = setTimeout(() => setActed(true), TAP_DELAY);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sceneIdx, step, paused]);
+  const start = (i: number) => {
+    clearTimeout(nextTimer.current);
+    setIdx(i);
+    setNonce((n) => n + 1);
+    setCaption(null);
+    setState("loading");
+    setPaused(false);
+  };
 
-  // degetul merge spre elementul țintă din ecran; după atingere îl urmărim încă o dată,
-  // după ce se termină tranzițiile (ex: butonul de rotire se mută odată cu masa)
+  // telefonul se micșorează ca să încapă în fereastră (lățime și înălțime)
   useLayoutEffect(() => {
-    const measure = () => {
-      const frame = frameRef.current;
-      if (!frame || !current.target) {
-        setCursor((c) => ({ ...c, visible: false }));
-        return;
-      }
-      const el = frame.querySelector<HTMLElement>(`[data-target="${current.target}"]`);
-      if (!el) return;
-      const f = frame.getBoundingClientRect();
-      const r = el.getBoundingClientRect();
-      setCursor({ x: ((r.left + r.width / 2 - f.left) / f.width) * 100, y: ((r.top + r.height / 2 - f.top) / f.height) * 100, visible: true });
+    const fit = () => {
+      const w = boxRef.current?.clientWidth ?? FRAME_W;
+      const h = Math.min(window.innerHeight * 0.56, 640);
+      setScale(Math.min(1, w / FRAME_W, h / FRAME_H));
     };
-    measure();
-    if (!acted) return;
-    const t = setTimeout(measure, 1050);
-    return () => clearTimeout(t);
-  }, [sceneIdx, step, acted, current.target]);
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
 
-  const go = (s: number, st: number) => {
-    setSceneIdx(s);
-    setStep(st);
-  };
-  const next = () => {
-    if (step < scene.steps.length - 1) go(sceneIdx, step + 1);
-    else if (sceneIdx < scenes.length - 1) go(sceneIdx + 1, 0);
-    else go(0, 0);
-  };
-  const prev = () => {
-    if (step > 0) go(sceneIdx, step - 1);
-    else if (sceneIdx > 0) go(sceneIdx - 1, scenes[sceneIdx - 1].steps.length - 1);
+  useEffect(() => {
+    const onMessage = (e: MessageEvent) => {
+      const d = e.data as GuideMessage;
+      if (e.origin !== window.location.origin || e.source !== iframeRef.current?.contentWindow || d?.source !== "pn-guide") return;
+      if (d.type === "caption") {
+        setCaption({ text: d.text ?? "", index: d.index ?? 0, total: d.total ?? 1 });
+        setState("playing");
+      } else if (d.type === "done") {
+        if (idx < scenes.length - 1) nextTimer.current = setTimeout(() => start(idx + 1), 1500);
+        else setState("done");
+      } else if (d.type === "error") {
+        console.warn("Ghid:", d.text);
+        setState("error");
+      }
+    };
+    window.addEventListener("message", onMessage);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      clearTimeout(nextTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, scenes.length]);
+
+  const togglePause = () => {
+    if (state === "done" || state === "error") return start(state === "done" ? 0 : idx);
+    const next = !paused;
+    setPaused(next);
+    iframeRef.current?.contentWindow?.postMessage({ source: "pn-guide-parent", cmd: next ? "pause" : "play" } satisfies GuideCommand, window.location.origin);
   };
 
-  const total = scenes.reduce((s, sc) => s + sc.steps.reduce((a, b) => a + b.ms, 0), 0);
+  const progress = state === "done" ? 1 : caption ? caption.index / caption.total : 0;
 
   return (
-    <Modal open onClose={onClose} title={title}>
+    <Modal open onClose={onClose} title={title} wide>
       <div className="space-y-3">
         {scenes.length > 1 && (
           <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Capitole">
             {scenes.map((s, i) => (
               <button
-                key={s.id}
+                key={s}
                 type="button"
                 role="tab"
-                aria-selected={i === sceneIdx}
-                onClick={() => go(i, 0)}
+                aria-selected={i === idx}
+                onClick={() => start(i)}
                 className={cx(
                   "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-                  i === sceneIdx ? "bg-primary text-primary-fg" : "bg-surface-2 text-muted hover:text-text",
+                  i === idx ? "bg-primary text-primary-fg" : i < idx ? "bg-primary-soft text-primary-ink" : "bg-surface-2 text-muted hover:text-text",
                 )}
               >
-                {i + 1}. {s.title}
+                {i + 1}. {SCRIPTS[s].title}
               </button>
             ))}
           </div>
         )}
 
-        {/* progres: un segment pe pas, ca la „stories” */}
-        <div className="flex gap-1" aria-hidden>
-          {scene.steps.map((s, i) => (
-            <button key={i} type="button" className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2" onClick={() => go(sceneIdx, i)} tabIndex={-1}>
-              {i < step ? (
-                <span className="block h-full w-full bg-primary" />
-              ) : i === step ? (
-                <span
-                  key={`${sceneIdx}-${step}`}
-                  className="guide-progress block h-full bg-primary"
-                  style={{ animationDuration: `${s.ms}ms`, animationPlayState: paused ? "paused" : "running" }}
-                  onAnimationEnd={next}
-                />
-              ) : null}
-            </button>
-          ))}
+        <div className="h-1.5 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}>
+          <div className="h-full rounded-full bg-primary transition-[width] duration-700" style={{ width: `${progress * 100}%` }} />
         </div>
 
-        <div className="flex justify-center">
+        <div ref={boxRef} className="flex justify-center">
           <div
-            ref={frameRef}
-            className="relative h-[min(440px,56vh)] w-[290px] max-w-full select-none overflow-hidden rounded-[28px] border-4 border-text/80 bg-bg shadow-xl"
-            onClick={() => setPaused((p) => !p)}
-            aria-hidden
+            className="relative overflow-hidden rounded-[22px] border-4 border-text/80 bg-bg shadow-xl"
+            style={{ width: FRAME_W * scale + 8, height: FRAME_H * scale + 8, clipPath: "inset(0 round 22px)" }}
           >
-            <Screen step={step} acted={acted} />
-            <span
-              className={cx(
-                "pointer-events-none absolute z-20 -ml-4 -mt-4 h-8 w-8 rounded-full border-2 border-white bg-text/35 shadow-lg transition-all duration-500 ease-out motion-reduce:transition-none",
-                !cursor.visible && "opacity-0",
-                current.tap && !acted && "scale-100",
-                current.tap && acted && "scale-75",
-              )}
-              style={{ left: `${cursor.x}%`, top: `${cursor.y}%` }}
+            <iframe
+              key={`${scene}-${nonce}`}
+              ref={iframeRef}
+              src={`/?guide=${scene}&v=${nonce}`}
+              title={`Ghid: ${SCRIPTS[scene].title}`}
+              tabIndex={-1}
+              className="origin-top-left border-0"
+              style={{ width: FRAME_W, height: FRAME_H, transform: `scale(${scale})` }}
             />
-            {current.tap && acted && cursor.visible && (
-              <span
-                key={`tap-${sceneIdx}-${step}`}
-                className="guide-tap pointer-events-none absolute z-10 -ml-6 -mt-6 h-12 w-12 rounded-full bg-primary/40"
-                style={{ left: `${cursor.x}%`, top: `${cursor.y}%` }}
-              />
+            {/* stratul de deasupra: clicul pune pauză și nu ajunge în aplicație */}
+            <button type="button" className="absolute inset-0 cursor-pointer" onClick={togglePause} aria-label={paused ? "Pornește ghidul" : "Pune pauză"} />
+            {state === "loading" && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-bg/80">
+                <Spinner className="text-primary-ink" />
+              </div>
+            )}
+            {paused && state === "playing" && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/25">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-fg shadow-lg">
+                  <Play className="h-6 w-6" />
+                </span>
+              </div>
             )}
           </div>
         </div>
 
-        <p className="min-h-12 text-center text-base font-medium" aria-live="polite">
-          {current.caption}
+        <p className="min-h-14 text-center text-base font-medium leading-snug" aria-live="polite">
+          {state === "error"
+            ? "Ghidul s-a oprit. Apasă „De la început” ca să-l reiei."
+            : state === "done"
+              ? scenes.length > 1
+                ? "Asta e tot! Încearcă acum aplicația în modul demo sau conectează-te cu Google."
+                : "Asta e tot. Închide ghidul și încearcă pe pagina ta."
+              : (caption?.text ?? "Se pregătește ghidul…")}
         </p>
 
         <div className="flex items-center justify-center gap-2">
-          <CtrlBtn label="Pasul anterior" onClick={prev}>
+          <CtrlBtn label="Capitolul anterior" onClick={() => start(Math.max(0, idx - 1))} disabled={scenes.length < 2 || idx === 0}>
             <ChevronLeft className="h-5 w-5" />
           </CtrlBtn>
-          <CtrlBtn label={paused ? "Pornește" : "Pauză"} onClick={() => setPaused((p) => !p)} primary>
-            {paused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
+          <CtrlBtn label={paused || state === "done" ? "Pornește" : "Pauză"} onClick={togglePause} primary>
+            {paused || state === "done" ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
           </CtrlBtn>
-          <CtrlBtn label="Pasul următor" onClick={next}>
+          <CtrlBtn label="Capitolul următor" onClick={() => start(idx + 1)} disabled={idx >= scenes.length - 1}>
             <ChevronRight className="h-5 w-5" />
           </CtrlBtn>
-          <CtrlBtn label="De la început" onClick={() => go(0, 0)}>
+          <CtrlBtn label="De la început" onClick={() => start(scenes.length > 1 ? idx : 0)}>
             <RotateCcw className="h-4 w-4" />
           </CtrlBtn>
         </div>
         <p className="text-center text-xs text-muted">
-          {scenes.length > 1 ? `${scenes.length} pagini · ` : ""}cam {Math.round(total / 1000)} secunde · apasă pe ecran ca să oprești
+          {scenes.length > 1 ? `Capitolul ${idx + 1} din ${scenes.length} · ` : ""}aplicația reală, pe date demo · apasă pe ecran ca să oprești
         </p>
       </div>
     </Modal>
   );
 }
 
-function CtrlBtn({ label, onClick, children, primary }: { label: string; onClick: () => void; children: React.ReactNode; primary?: boolean }) {
+function CtrlBtn({ label, onClick, children, primary, disabled }: { label: string; onClick: () => void; children: React.ReactNode; primary?: boolean; disabled?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       aria-label={label}
       title={label}
       className={cx(
-        "flex h-10 w-10 items-center justify-center rounded-full transition-colors",
+        "flex h-10 w-10 items-center justify-center rounded-full transition-colors disabled:opacity-40",
         primary ? "bg-primary text-primary-fg hover:bg-primary-hover" : "border border-border bg-surface text-muted hover:text-text",
       )}
     >
