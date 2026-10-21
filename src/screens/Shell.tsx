@@ -5,6 +5,7 @@ import { usePlanner } from "../state/planner";
 import { href, useRoute, type Route } from "../state/route";
 import { Badge, cx } from "../components/ui";
 import { ThemeButton } from "../components/ThemeButton";
+import { GuideButton } from "../guide/GuideButton";
 import { Summary } from "./Summary";
 import { Guests } from "./Guests";
 import { Costs } from "./Costs";
@@ -49,6 +50,7 @@ export function Shell({ user, onLeave, onSwitch }: { user?: GoogleUser; onLeave:
             </div>
           </div>
           {store.kind === "demo" && <Badge tone="warning">Demo</Badge>}
+          <GuideButton key={route} route={route} />
           <ThemeButton />
           <button
             type="button"

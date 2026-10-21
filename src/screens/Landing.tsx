@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { CalendarHeart, HandCoins, LayoutGrid, ListChecks, Lock, Users } from "lucide-react";
+import { CalendarHeart, Clapperboard, HandCoins, LayoutGrid, ListChecks, Lock, Users } from "lucide-react";
+import { GuidePlayer } from "../guide/GuidePlayer";
+import { TOUR } from "../guide/scenes";
 import { googleConfigured } from "../lib/config";
 import { getStoredUser, signIn, type GoogleUser } from "../lib/google/auth";
 import { useFeedback } from "../components/feedback";
@@ -16,6 +18,7 @@ const FEATURES = [
 export function Landing({ onDemo, onGoogle }: { onDemo: () => void; onGoogle: (u: GoogleUser) => void }) {
   const { toast } = useFeedback();
   const [busy, setBusy] = useState(false);
+  const [tour, setTour] = useState(false);
   const remembered = getStoredUser();
 
   const login = async () => {
@@ -72,7 +75,14 @@ export function Landing({ onDemo, onGoogle }: { onDemo: () => void; onGoogle: (u
           </div>
         </Card>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2">
+        <div className="mt-8 flex justify-center">
+          <Button icon={<Clapperboard className="h-4 w-4" />} onClick={() => setTour(true)}>
+            Vezi cum funcționează (40 s)
+          </Button>
+        </div>
+        {tour && <GuidePlayer title="Cum funcționează" scenes={TOUR} onClose={() => setTour(false)} />}
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {FEATURES.map((f) => (
             <Card key={f.title} className="flex gap-3 p-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary-ink">
